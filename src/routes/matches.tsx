@@ -1,40 +1,325 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Bus, Check, ChevronDown, Clock3, Info, MapPin, ShieldCheck, Sparkles, Wifi } from "lucide-react";
+import {
+  ArrowRight,
+  Bus,
+  Check,
+  ChevronDown,
+  Clock3,
+  Info,
+  MapPin,
+  ShieldCheck,
+  Sparkles,
+  Wifi,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useTriage } from "@/components/schoolbridge/triage-context";
-import { categoriesByLevel, levelLabels, matchesByLevel, type MatchResource } from "@/lib/schoolbridge";
+import {
+  categoriesByLevel,
+  levelLabels,
+  matchesByLevel,
+  type MatchResource,
+} from "@/lib/schoolbridge";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/matches")({ head: () => ({ meta: [
-  { title: "Your Resource Matches — SchoolBridge" }, { name: "description", content: "Compare student resources ranked by need, eligibility, schedule, and location." },
-  { property: "og:title", content: "Your Resource Matches — SchoolBridge" }, { property: "og:description", content: "See why each student resource fits your real needs." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" },
-] }), component: MatchesPage });
+export const Route = createFileRoute("/matches")({
+  head: () => ({
+    meta: [
+      { title: "Your Resource Matches — SchoolBridge" },
+      {
+        name: "description",
+        content: "Compare student resources ranked by need, eligibility, schedule, and location.",
+      },
+      { property: "og:title", content: "Your Resource Matches — SchoolBridge" },
+      {
+        property: "og:description",
+        content: "See why each student resource fits your real needs.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: MatchesPage,
+});
 
 function MatchesPage() {
   const { level, needs, constraints, location, request } = useTriage();
   const [filter, setFilter] = useState("all");
   const [onlineOnly, setOnlineOnly] = useState(false);
-  const resources = useMemo(() => matchesByLevel[level].filter((r) => (filter === "all" || r.category === filter) && (!onlineOnly || r.mode !== "In person")), [level, filter, onlineOnly]);
-  const selectedNames = categoriesByLevel[level].filter((c) => needs.includes(c.id)).map((c) => c.shortLabel);
-  return <div className="min-h-[calc(100dvh-4.5rem)] bg-soft pb-24">
-    <section className="border-b border-border bg-background"><div className="mx-auto max-w-7xl px-5 py-10 lg:px-8"><div className="grid gap-7 lg:grid-cols-[1fr_auto] lg:items-end"><div><p className="eyebrow"><Sparkles className="inline size-4" /> Personalized for {levelLabels[level]}</p><h1 className="font-display text-4xl font-extrabold sm:text-5xl">We found {resources.length} strong matches.</h1><p className="mt-3 max-w-2xl text-muted-foreground">Ranked by what you need, whether you qualify, when you’re free, and how you’ll get there.</p></div><Button asChild variant="outline"><Link to="/get-started">Update my answers</Link></Button></div>
-      <div className="mt-8 flex flex-wrap gap-2" aria-label="Your search requirements">{selectedNames.map((name) => <span key={name} className="rounded-full bg-tint-green px-3 py-1.5 text-sm font-bold text-primary"><Check className="mr-1 inline size-4" />{name}</span>)}{constraints.slice(0, 3).map((item) => <span key={item} className="rounded-full bg-muted px-3 py-1.5 text-sm font-semibold text-foreground">{item}</span>)}{location && <span className="rounded-full bg-muted px-3 py-1.5 text-sm font-semibold text-foreground"><MapPin className="mr-1 inline size-4" />Near {location}</span>}</div></div></section>
-    <div className="mx-auto grid max-w-7xl gap-8 px-5 py-8 lg:grid-cols-[230px_1fr] lg:px-8">
-      <aside><div className="sticky top-24 space-y-6"><div><h2 className="font-display text-lg font-bold">Filter matches</h2><div className="mt-3 flex gap-2 overflow-x-auto pb-2 lg:flex-col">{[{ id: "all", label: "All matches" }, ...categoriesByLevel[level].filter((c) => matchesByLevel[level].some((r) => r.category === c.id)).map((c) => ({ id: c.id, label: c.shortLabel }))].map((item) => <Button key={item.id} variant={filter === item.id ? "default" : "outline"} className="justify-start" onClick={() => setFilter(item.id)} aria-pressed={filter === item.id}>{item.label}</Button>)}</div></div><Button variant={onlineOnly ? "secondary" : "outline"} className="w-full justify-between" onClick={() => setOnlineOnly(!onlineOnly)} aria-pressed={onlineOnly}><span className="flex items-center gap-2"><Wifi />Online options</span>{onlineOnly && <Check />}</Button><div className="rounded-lg border border-border bg-background p-4"><ShieldCheck className="size-5 text-primary" /><h2 className="mt-3 font-display font-bold">Safety first</h2><p className="mt-1 text-xs leading-5 text-muted-foreground">Check details with the provider. Younger students should involve a trusted adult before visiting.</p></div></div></aside>
-      <section aria-labelledby="results-heading"><div className="mb-4 flex items-center justify-between"><h2 id="results-heading" className="font-display text-xl font-bold">Best fit first</h2><span aria-live="polite" className="text-sm text-muted-foreground">{resources.length} results</span></div>{resources.length ? <div className="space-y-5">{resources.map((resource, i) => <ResultCard key={resource.id} resource={resource} top={i === 0} request={request} level={level} />)}</div> : <div className="rounded-lg border border-border bg-background p-10 text-center"><h2 className="font-display text-2xl font-bold">No exact matches yet</h2><p className="mt-2 text-muted-foreground">Try showing all categories or including in-person options.</p><Button className="mt-5" onClick={() => { setFilter("all"); setOnlineOnly(false); }}>Clear filters</Button></div>}</section>
+  const resources = useMemo(
+    () =>
+      matchesByLevel[level].filter(
+        (r) =>
+          (filter === "all" || r.category === filter) && (!onlineOnly || r.mode !== "In person"),
+      ),
+    [level, filter, onlineOnly],
+  );
+  const selectedNames = categoriesByLevel[level]
+    .filter((c) => needs.includes(c.id))
+    .map((c) => c.shortLabel);
+  return (
+    <div className="min-h-[calc(100dvh-4.5rem)] bg-soft pb-24">
+      <section className="border-b border-border bg-background">
+        <div className="mx-auto max-w-7xl px-5 py-10 lg:px-8">
+          <div className="grid gap-7 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div>
+              <p className="eyebrow">
+                <Sparkles className="inline size-4" /> Personalized for {levelLabels[level]}
+              </p>
+              <h1 className="font-display text-4xl font-extrabold sm:text-5xl">
+                We found {resources.length} strong matches.
+              </h1>
+              <p className="mt-3 max-w-2xl text-muted-foreground">
+                Ranked by what you need, whether you qualify, when you’re free, and how you’ll get
+                there.
+              </p>
+            </div>
+            <Button asChild variant="outline">
+              <Link to="/get-started">Update my answers</Link>
+            </Button>
+          </div>
+          <div className="mt-8 flex flex-wrap gap-2" aria-label="Your search requirements">
+            {selectedNames.map((name) => (
+              <span
+                key={name}
+                className="rounded-full bg-tint-green px-3 py-1.5 text-sm font-bold text-primary"
+              >
+                <Check className="mr-1 inline size-4" />
+                {name}
+              </span>
+            ))}
+            {constraints.slice(0, 3).map((item) => (
+              <span
+                key={item}
+                className="rounded-full bg-muted px-3 py-1.5 text-sm font-semibold text-foreground"
+              >
+                {item}
+              </span>
+            ))}
+            {location && (
+              <span className="rounded-full bg-muted px-3 py-1.5 text-sm font-semibold text-foreground">
+                <MapPin className="mr-1 inline size-4" />
+                Near {location}
+              </span>
+            )}
+          </div>
+        </div>
+      </section>
+      <div className="mx-auto grid max-w-7xl gap-8 px-5 py-8 lg:grid-cols-[230px_1fr] lg:px-8">
+        <aside>
+          <div className="sticky top-24 space-y-6">
+            <div>
+              <h2 className="font-display text-lg font-bold">Filter matches</h2>
+              <div className="mt-3 flex gap-2 overflow-x-auto pb-2 lg:flex-col">
+                {[
+                  { id: "all", label: "All matches" },
+                  ...categoriesByLevel[level]
+                    .filter((c) => matchesByLevel[level].some((r) => r.category === c.id))
+                    .map((c) => ({ id: c.id, label: c.shortLabel })),
+                ].map((item) => (
+                  <Button
+                    key={item.id}
+                    variant={filter === item.id ? "default" : "outline"}
+                    className="justify-start"
+                    onClick={() => setFilter(item.id)}
+                    aria-pressed={filter === item.id}
+                  >
+                    {item.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <Button
+              variant={onlineOnly ? "secondary" : "outline"}
+              className="w-full justify-between"
+              onClick={() => setOnlineOnly(!onlineOnly)}
+              aria-pressed={onlineOnly}
+            >
+              <span className="flex items-center gap-2">
+                <Wifi />
+                Online options
+              </span>
+              {onlineOnly && <Check />}
+            </Button>
+            <div className="rounded-lg border border-border bg-background p-4">
+              <ShieldCheck className="size-5 text-primary" />
+              <h2 className="mt-3 font-display font-bold">Safety first</h2>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                Check details with the provider. Younger students should involve a trusted adult
+                before visiting.
+              </p>
+            </div>
+          </div>
+        </aside>
+        <section aria-labelledby="results-heading">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 id="results-heading" className="font-display text-xl font-bold">
+              Best fit first
+            </h2>
+            <span aria-live="polite" className="text-sm text-muted-foreground">
+              {resources.length} results
+            </span>
+          </div>
+          {resources.length ? (
+            <div className="space-y-5">
+              {resources.map((resource, i) => (
+                <ResultCard
+                  key={resource.id}
+                  resource={resource}
+                  top={i === 0}
+                  request={request}
+                  level={level}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-border bg-background p-10 text-center">
+              <h2 className="font-display text-2xl font-bold">No exact matches yet</h2>
+              <p className="mt-2 text-muted-foreground">
+                Try showing all categories or including in-person options.
+              </p>
+              <Button
+                className="mt-5"
+                onClick={() => {
+                  setFilter("all");
+                  setOnlineOnly(false);
+                }}
+              >
+                Clear filters
+              </Button>
+            </div>
+          )}
+        </section>
+      </div>
     </div>
-  </div>;
+  );
 }
 
-function ResultCard({ resource, top, request, level }: { resource: MatchResource; top: boolean; request: string; level: "middle" | "high" | "college" }) {
+function ResultCard({
+  resource,
+  top,
+  request,
+  level,
+}: {
+  resource: MatchResource;
+  top: boolean;
+  request: string;
+  level: "middle" | "high" | "college";
+}) {
   const [open, setOpen] = useState(top);
-  const breakdown = [{ icon: Check, label: "Needs", value: resource.score }, { icon: ShieldCheck, label: "Eligibility", value: Math.min(100, resource.score + 2) }, { icon: Clock3, label: "Schedule", value: Math.max(82, resource.score - 3) }, { icon: MapPin, label: "Location", value: Math.max(78, resource.score - 6) }];
-  return <article className={cn("overflow-hidden rounded-lg border bg-background transition-shadow hover:shadow-lg", top ? "border-primary/40 shadow-md" : "border-border")}>
-    {top && <div className="bg-primary px-5 py-2 text-xs font-extrabold uppercase text-primary-foreground"><Sparkles className="mr-1 inline size-4" />Best overall fit</div>}
-    <div className="p-5 sm:p-6"><div className="flex flex-col gap-5 sm:flex-row sm:items-start"><div className="grid size-14 shrink-0 place-items-center rounded-lg bg-tint-green font-display text-lg font-extrabold text-primary">{resource.score}%</div><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><span className="text-xs font-bold text-primary">{resource.verified}</span>{resource.deadline && <span className="rounded-full bg-tint-yellow px-2 py-1 text-xs font-bold text-foreground">{resource.deadline}</span>}</div><h3 className="mt-2 font-display text-2xl font-extrabold">{resource.name}</h3><p className="text-sm font-semibold text-muted-foreground">{resource.provider}</p><p className="mt-3 leading-6 text-muted-foreground">{resource.summary}</p><div className="mt-4 flex flex-wrap gap-2">{resource.tags.map((tag) => <span key={tag} className="rounded-full bg-muted px-2.5 py-1 text-xs font-semibold"><Check className="mr-1 inline size-3 text-primary" />{tag}</span>)}</div><div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold text-muted-foreground"><span><Clock3 className="mr-1 inline size-4" />{resource.schedule}</span><span><MapPin className="mr-1 inline size-4" />{resource.distance}</span><span><Bus className="mr-1 inline size-4" />{resource.mode}</span></div></div></div>
-      <div className="mt-5 border-t border-border pt-5"><Button variant="ghost" className="w-full justify-between px-0 hover:bg-transparent" aria-expanded={open} onClick={() => setOpen(!open)}><span className="font-display text-base font-bold"><Info className="mr-2 inline size-4 text-primary" />Why this matches</span><ChevronDown className={cn("transition-transform", open && "rotate-180")} /></Button>{open && <div className="mt-4 rounded-lg bg-soft p-4"><p className="text-sm leading-6 text-muted-foreground">{request ? `You told us: “${request}” ` : "Based on your selected needs, "}this option fits because it is {resource.tags.slice(0, 3).join(", ").toLowerCase()}.</p><div className="mt-4 grid gap-3 sm:grid-cols-4">{breakdown.map(({ icon: Icon, label, value }) => <div key={label}><div className="flex items-center justify-between text-xs font-bold"><span className="flex items-center gap-1"><Icon className="size-3 text-primary" />{label}</span><span>{value}%</span></div><div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${value}%` }} /></div></div>)}</div>{resource.parentNote && level === "middle" && <p className="mt-4 rounded-md bg-tint-coral p-3 text-xs font-semibold text-foreground">Guardian guidance: {resource.parentNote}</p>}</div>}</div>
-      <div className="mt-5 flex flex-wrap justify-end gap-2"><Button variant="outline">Save</Button><Button>View resource <ArrowRight /></Button></div>
-    </div>
-  </article>;
+  const breakdown = [
+    { icon: Check, label: "Needs", value: resource.score },
+    { icon: ShieldCheck, label: "Eligibility", value: Math.min(100, resource.score + 2) },
+    { icon: Clock3, label: "Schedule", value: Math.max(82, resource.score - 3) },
+    { icon: MapPin, label: "Location", value: Math.max(78, resource.score - 6) },
+  ];
+  return (
+    <article
+      className={cn(
+        "overflow-hidden rounded-lg border bg-background transition-shadow hover:shadow-lg",
+        top ? "border-primary/40 shadow-md" : "border-border",
+      )}
+    >
+      {top && (
+        <div className="bg-primary px-5 py-2 text-xs font-extrabold uppercase text-primary-foreground">
+          <Sparkles className="mr-1 inline size-4" />
+          Best overall fit
+        </div>
+      )}
+      <div className="p-5 sm:p-6">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+          <div className="grid size-14 shrink-0 place-items-center rounded-lg bg-tint-green font-display text-lg font-extrabold text-primary">
+            {resource.score}%
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-bold text-primary">{resource.verified}</span>
+              {resource.deadline && (
+                <span className="rounded-full bg-tint-yellow px-2 py-1 text-xs font-bold text-foreground">
+                  {resource.deadline}
+                </span>
+              )}
+            </div>
+            <h3 className="mt-2 font-display text-2xl font-extrabold">{resource.name}</h3>
+            <p className="text-sm font-semibold text-muted-foreground">{resource.provider}</p>
+            <p className="mt-3 leading-6 text-muted-foreground">{resource.summary}</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {resource.tags.map((tag) => (
+                <span key={tag} className="rounded-full bg-muted px-2.5 py-1 text-xs font-semibold">
+                  <Check className="mr-1 inline size-3 text-primary" />
+                  {tag}
+                </span>
+              ))}
+            </div>
+            <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold text-muted-foreground">
+              <span>
+                <Clock3 className="mr-1 inline size-4" />
+                {resource.schedule}
+              </span>
+              <span>
+                <MapPin className="mr-1 inline size-4" />
+                {resource.distance}
+              </span>
+              <span>
+                <Bus className="mr-1 inline size-4" />
+                {resource.mode}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="mt-5 border-t border-border pt-5">
+          <Button
+            variant="ghost"
+            className="w-full justify-between px-0 hover:bg-transparent"
+            aria-expanded={open}
+            onClick={() => setOpen(!open)}
+          >
+            <span className="font-display text-base font-bold">
+              <Info className="mr-2 inline size-4 text-primary" />
+              Why this matches
+            </span>
+            <ChevronDown className={cn("transition-transform", open && "rotate-180")} />
+          </Button>
+          {open && (
+            <div className="mt-4 rounded-lg bg-soft p-4">
+              <p className="text-sm leading-6 text-muted-foreground">
+                {request ? `You told us: “${request}” ` : "Based on your selected needs, "}this
+                option fits because it is {resource.tags.slice(0, 3).join(", ").toLowerCase()}.
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-4">
+                {breakdown.map(({ icon: Icon, label, value }) => (
+                  <div key={label}>
+                    <div className="flex items-center justify-between text-xs font-bold">
+                      <span className="flex items-center gap-1">
+                        <Icon className="size-3 text-primary" />
+                        {label}
+                      </span>
+                      <span>{value}%</span>
+                    </div>
+                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="h-full rounded-full bg-primary"
+                        style={{ width: `${value}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {resource.parentNote && level === "middle" && (
+                <p className="mt-4 rounded-md bg-tint-coral p-3 text-xs font-semibold text-foreground">
+                  Guardian guidance: {resource.parentNote}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="mt-5 flex flex-wrap justify-end gap-2">
+          <Button variant="outline">Save</Button>
+          <Button>
+            View resource <ArrowRight />
+          </Button>
+        </div>
+      </div>
+    </article>
+  );
 }

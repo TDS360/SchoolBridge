@@ -22,7 +22,21 @@ export function TriageProvider({ children }: { children: ReactNode }) {
   const [request, setRequest] = useState("");
   const [location, setLocation] = useState("");
   const [constraints, setConstraints] = useState<string[]>(["Free only", "After school / evening"]);
-  const value = useMemo(() => ({ level, setLevel, needs, setNeeds, request, setRequest, location, setLocation, constraints, setConstraints }), [level, needs, request, location, constraints]);
+  const value = useMemo(
+    () => ({
+      level,
+      setLevel,
+      needs,
+      setNeeds,
+      request,
+      setRequest,
+      location,
+      setLocation,
+      constraints,
+      setConstraints,
+    }),
+    [level, needs, request, location, constraints],
+  );
   return <TriageContext.Provider value={value}>{children}</TriageContext.Provider>;
 }
 

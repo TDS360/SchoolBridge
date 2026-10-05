@@ -12,6 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as GetStartedRouteImport } from './routes/get-started'
 import { Route as MatchesRouteImport } from './routes/matches'
+import { Route as OrganizationRouteImport } from './routes/organization'
+import { Route as OrganizationIndexRouteImport } from './routes/organization.index'
+import { Route as OrganizationAnalyticsRouteImport } from './routes/organization.analytics'
+import { Route as OrganizationResourcesIndexRouteImport } from './routes/organization.resources.index'
+import { Route as OrganizationResourcesNewRouteImport } from './routes/organization.resources.new'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +33,101 @@ const MatchesRoute = MatchesRouteImport.update({
   path: '/matches',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrganizationRoute = OrganizationRouteImport.update({
+  id: '/organization',
+  path: '/organization',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrganizationIndexRoute = OrganizationIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => OrganizationRoute,
+} as any)
+const OrganizationAnalyticsRoute = OrganizationAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => OrganizationRoute,
+} as any)
+const OrganizationResourcesIndexRoute =
+  OrganizationResourcesIndexRouteImport.update({
+    id: '/resources/',
+    path: '/resources/',
+    getParentRoute: () => OrganizationRoute,
+  } as any)
+const OrganizationResourcesNewRoute =
+  OrganizationResourcesNewRouteImport.update({
+    id: '/resources/new',
+    path: '/resources/new',
+    getParentRoute: () => OrganizationRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/get-started': typeof GetStartedRoute
   '/matches': typeof MatchesRoute
+  '/organization': typeof OrganizationRouteWithChildren
+  '/organization/analytics': typeof OrganizationAnalyticsRoute
+  '/organization/': typeof OrganizationIndexRoute
+  '/organization/resources/new': typeof OrganizationResourcesNewRoute
+  '/organization/resources/': typeof OrganizationResourcesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/get-started': typeof GetStartedRoute
   '/matches': typeof MatchesRoute
+  '/organization/analytics': typeof OrganizationAnalyticsRoute
+  '/organization': typeof OrganizationIndexRoute
+  '/organization/resources/new': typeof OrganizationResourcesNewRoute
+  '/organization/resources': typeof OrganizationResourcesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/get-started': typeof GetStartedRoute
   '/matches': typeof MatchesRoute
+  '/organization': typeof OrganizationRouteWithChildren
+  '/organization/analytics': typeof OrganizationAnalyticsRoute
+  '/organization/': typeof OrganizationIndexRoute
+  '/organization/resources/new': typeof OrganizationResourcesNewRoute
+  '/organization/resources/': typeof OrganizationResourcesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/get-started' | '/matches'
+  fullPaths:
+    | '/'
+    | '/get-started'
+    | '/matches'
+    | '/organization'
+    | '/organization/analytics'
+    | '/organization/'
+    | '/organization/resources/new'
+    | '/organization/resources/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/get-started' | '/matches'
-  id: '__root__' | '/' | '/get-started' | '/matches'
+  to:
+    | '/'
+    | '/get-started'
+    | '/matches'
+    | '/organization/analytics'
+    | '/organization'
+    | '/organization/resources/new'
+    | '/organization/resources'
+  id:
+    | '__root__'
+    | '/'
+    | '/get-started'
+    | '/matches'
+    | '/organization'
+    | '/organization/analytics'
+    | '/organization/'
+    | '/organization/resources/new'
+    | '/organization/resources/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   GetStartedRoute: typeof GetStartedRoute
   MatchesRoute: typeof MatchesRoute
+  OrganizationRoute: typeof OrganizationRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -82,13 +153,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MatchesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/organization': {
+      id: '/organization'
+      path: '/organization'
+      fullPath: '/organization'
+      preLoaderRoute: typeof OrganizationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/organization/': {
+      id: '/organization/'
+      path: '/'
+      fullPath: '/organization/'
+      preLoaderRoute: typeof OrganizationIndexRouteImport
+      parentRoute: typeof OrganizationRoute
+    }
+    '/organization/analytics': {
+      id: '/organization/analytics'
+      path: '/analytics'
+      fullPath: '/organization/analytics'
+      preLoaderRoute: typeof OrganizationAnalyticsRouteImport
+      parentRoute: typeof OrganizationRoute
+    }
+    '/organization/resources/': {
+      id: '/organization/resources/'
+      path: '/resources'
+      fullPath: '/organization/resources/'
+      preLoaderRoute: typeof OrganizationResourcesIndexRouteImport
+      parentRoute: typeof OrganizationRoute
+    }
+    '/organization/resources/new': {
+      id: '/organization/resources/new'
+      path: '/resources/new'
+      fullPath: '/organization/resources/new'
+      preLoaderRoute: typeof OrganizationResourcesNewRouteImport
+      parentRoute: typeof OrganizationRoute
+    }
   }
 }
+
+interface OrganizationRouteChildren {
+  OrganizationAnalyticsRoute: typeof OrganizationAnalyticsRoute
+  OrganizationIndexRoute: typeof OrganizationIndexRoute
+  OrganizationResourcesNewRoute: typeof OrganizationResourcesNewRoute
+  OrganizationResourcesIndexRoute: typeof OrganizationResourcesIndexRoute
+}
+
+const OrganizationRouteChildren: OrganizationRouteChildren = {
+  OrganizationAnalyticsRoute: OrganizationAnalyticsRoute,
+  OrganizationIndexRoute: OrganizationIndexRoute,
+  OrganizationResourcesNewRoute: OrganizationResourcesNewRoute,
+  OrganizationResourcesIndexRoute: OrganizationResourcesIndexRoute,
+}
+
+const OrganizationRouteWithChildren = OrganizationRoute._addFileChildren(
+  OrganizationRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   GetStartedRoute: GetStartedRoute,
   MatchesRoute: MatchesRoute,
+  OrganizationRoute: OrganizationRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
